@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!--
+    viewport設定：スマホで拡大縮小を無効化し、
+    画面幅をデバイス幅に合わせる
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🃏 ホールデム 役判定クイズ</title>
+
+  <!--
+    外部CSSファイルを読み込む
+    <link rel="stylesheet"> ：スタイルシートとして読み込む指定
+    href="style.css"        ：このHTMLと同じフォルダにある style.css を参照する
+  -->
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+<!-- ============================================================
+  ホーム（スタート）画面
+  ページを開いた時に最初に表示される画面
+  「スタート」を押すと startQuiz() が呼ばれてクイズが始まる
+============================================================ -->
+<div id="home-screen">
+
+  <div class="home-deco">♠ ♥ ♦ ♣</div>
+
+  <div class="home-title">ホールデム<br>役判定クイズ</div>
+
+  <div class="home-en-title">🃏 HOLD'EM SHOWDOWN QUIZ 🃏</div>
+
+  <div class="home-rules">
+    <div class="home-rule-title">📖 遊び方</div>
+    コミュニティカード5枚と、各プレイヤーの<br>
+    ホールカード2枚から最強の5枚を判断し、<br>
+    <strong>「どちらが勝つか？」</strong>を当てよう！<br><br>
+    ⏱ 制限時間：<strong>10秒</strong>（画面でOFF可）<br>
+    💡 回答後に勝敗の詳細解説を表示<br>
+    ❌ 間違えると復習リストに記録
+  </div>
+
+  <button class="start-btn" onclick="startQuiz()">▶ スタート</button>
+
+</div><!-- /#home-screen -->
+
+
+<!-- ============================================================
+  クイズ画面
+  startQuiz() が呼ばれると display: flex で表示される
+============================================================ -->
+<div id="quiz-screen">
+
+  <!-- ---- スコア表示バー ---- -->
+  <div class="score-bar">
+    <div class="score-title">🃏 HOLD'EM SHOWDOWN QUIZ 🃏</div>
+    <div class="score-count">
+      正解：<span class="score-num" id="score-correct">0</span>問
+      ／ <span id="score-total">0</span>問中
+    </div>
+    <!--
+      連続正解数（ストリーク）の表示行
+      ストリークが0のときは opacity:0 で非表示にし、
+      1以上になると opacity:1 でふわっと現れる
+      JavaScript の updateStreakDisplay() によって更新される
+    -->
+    <div class="streak-row" id="streak-row" style="opacity:0">
+      <span class="streak-icon">🔥</span>
+      <span class="streak-num" id="streak-count">0</span>
+      問連続正解中！
+    </div>
+  </div>
+
+  <!-- ---- コミュニティカード（ボード）---- -->
+  <!-- UIの主役その1：大サイズ（.card-lg）で5枚を1列表示 -->
+  <div class="section-box">
+    <div class="section-label">🎴 Community Cards（ボード）</div>
+    <!--
+      community-row の flex-wrap: nowrap で必ず1行表示
+      JavaScript の renderCards() によってカードが動的に追加される
+    -->
+    <div class="community-row" id="community-cards"></div>
+  </div>
+
+  <!-- ---- プレイヤーA / B を横2列で表示 ---- -->
+  <!-- UIの主役その2：ホールカードも大サイズで表示 -->
+  <div class="players-row">
+
+    <!-- プレイヤーA ボックス -->
+    <div class="player-box">
+      <div class="player-label">👤 Player A</div>
+
+      <!--
+        ホールカード（手札）2枚 — 大サイズ（.card-lg）で表示
+        回答後：ベストハンドに使われたカードにシアン枠がつく
+      -->
+      <div class="hole-row" id="player-a-hole"></div>
+
+      <!--
+        ベストハンドセクション（回答前は非表示）
+        回答後に display:block で展開される
+        ここは補足情報なので小サイズ（.card-sm）で表示
+      -->
+      <div class="best-section" id="player-a-best-section">
+        <div class="hand-info-row">
+          <span class="best-label">BEST HAND</span>
+          <span class="hand-name" id="player-a-hand-name"></span>
+        </div>
+        <!--
+          ベストハンドの5枚（小サイズ）
+          手札由来→シアン枠、ボード由来→ゴールド枠
+        -->
+        <div class="best-cards-row" id="player-a-best"></div>
+        <!-- 凡例：どちらの色が手札でどちらがボードかを示す -->
+        <div class="best-legend">
+          <div class="legend-item"><div class="legend-dot hole"></div>手札</div>
+          <div class="legend-item"><div class="legend-dot board"></div>ボード</div>
+        </div>
+      </div>
+    </div><!-- /player-box A -->
+
+    <!-- プレイヤーB ボックス（構造はAと同一） -->
+    <div class="player-box">
+      <div class="player-label">👤 Player B</div>
+
+      <div class="hole-row" id="player-b-hole"></div>
+
+      <div class="best-section" id="player-b-best-section">
+        <div class="hand-info-row">
+          <span class="best-label">BEST HAND</span>
+          <span class="hand-name" id="player-b-hand-name"></span>
+        </div>
+        <div class="best-cards-row" id="player-b-best"></div>
+        <div class="best-legend">
+          <div class="legend-item"><div class="legend-dot hole"></div>手札</div>
+          <div class="legend-item"><div class="legend-dot board"></div>ボード</div>
+        </div>
+      </div>
+    </div><!-- /player-box B -->
+
+  </div><!-- /.players-row -->
+
+  <!-- ---- タイマーセクション ---- -->
+  <div class="section-box timer-area">
+
+    <!--
+      「勝者はどっち？」テキストと
+      タイマーON/OFFボタンを横並びにする行
+    -->
+    <div class="timer-header">
+      <span class="question-text">勝者はどっち？</span>
+      <!--
+        タイマートグルボタン：タップで toggleTimer() を呼び出す
+        ONの時：シアン色で「⏱ ON」
+        OFFの時：グレーで「⏱ OFF」
+      -->
+      <button class="timer-toggle-btn" id="timer-toggle-btn" onclick="toggleTimer()">⏱ ON</button>
+    </div>
+
+    <!--
+      タイマーのカウントダウン表示部分
+      タイマーOFF時は display:none で非表示になる
+    -->
+    <div id="timer-content">
+      <div class="timer-text">
+        残り <span class="timer-num" id="timer-display">10.00</span> 秒
+      </div>
+      <!--
+        プログレスバー：残り時間に合わせて幅が 100%→0% に変化
+        残り3秒以下で .warn クラスが追加されて赤くなる
+      -->
+      <div class="timer-bar">
+        <div class="timer-fill" id="timer-fill" style="width:100%"></div>
+      </div>
+    </div>
+
+    <!-- タイマーOFF時のメッセージ（通常は非表示） -->
+    <div class="timer-off-msg" id="timer-off-msg">制限時間なし</div>
+
+  </div>
+
+  <!-- ---- 回答ボタン ---- -->
+  <div class="answer-btns">
+    <!-- 各ボタンタップで answer() 関数に引数を渡す -->
+    <button class="answer-btn btn-a"    onclick="answer('A')">🔵<br>A 勝ち</button>
+    <button class="answer-btn btn-chop" onclick="answer('chop')">🤝<br>チョップ</button>
+    <button class="answer-btn btn-b"    onclick="answer('B')">🔴<br>B 勝ち</button>
+  </div>
+
+  <!--
+    結果ボックス（回答後に展開される）
+    ・result-headline ：✅ 正解！ / ❌ 不正解！ のメイン表示
+    ・result-answer   ：正解（不正解・時間切れ時のみ表示）
+    ・result-explain  ：勝敗理由の詳細解説テキスト
+  -->
+  <div id="result-box">
+    <div class="result-headline" id="result-headline"></div>
+    <div id="result-answer"></div>
+    <div id="result-explain">
+      <div class="explain-icon">💡 解説</div>
+      <div id="explain-text"></div>
+    </div>
+    <!--
+      シェアボタン
+      ・回答前は display:none で非表示
+      ・answer() が呼ばれると display:flex で表示される
+      ・タップで executeShare() が実行される
+        スマホ → Web Share API（OS純正シェートメニュー）
+        PC    → X の Web Intent URL を別タブで開く
+    -->
+    <button id="share-btn" onclick="executeShare()">
+      <span class="share-x-logo">𝕏</span>
+      でシェアする
+    </button>
+  </div>
+
+</div><!-- /#quiz-screen -->
+
+
+<!-- ============================================================
+  復習リストセクション（スタートボタン押下後に表示）
+============================================================ -->
+<div id="review-section">
+  <div class="review-header">
+    <span class="review-header-title">📋 復習リスト（間違えた問題）</span>
+    <button class="delete-btn" onclick="deleteHistory()">🗑 履歴削除</button>
+  </div>
+  <!-- JavaScript が動的にアイテムを追加する格納先 -->
+  <div id="review-list"></div>
+</div>
+
+
+<!-- ============================================================
+  「次の問題へ」ボタン
+  position: fixed で画面下部に常に固定表示
+  → スクロールなしでいつでもタップできる
+  回答前は非表示 → 回答後に表示
+============================================================ -->
+<button id="next-btn" onclick="nextQuestion()">次の問題へ ▶</button>
+
+
+<!--
+  外部JavaScriptファイルを読み込む
+  src="script.js"  ：このHTMLと同じフォルダにある script.js を参照する
+  defer            ：HTMLを全て読み込み終わってからJSを実行する指定。
+                     こうすることで、JSが実行される時点では必ず
+                     全てのHTML要素（id="..."など）が存在する状態になり、
+                     「要素が見つからない」エラーを防げる。
+                     ※ <body> の末尾に <script> を置くのと同じ効果がある
+-->
+<script src="script.js" defer></script>
+
+</body>
+</html>

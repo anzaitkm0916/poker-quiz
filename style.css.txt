@@ -1,0 +1,775 @@
+/* ======================================================
+   style.css
+   ホールデム 役判定クイズ — スタイルシート
+
+   【目次】
+    1.  グローバルリセット & 基本設定
+    2.  ホーム（スタート）画面
+    3.  クイズ画面全体のコンテナ
+    4.  スコア表示バー / ストリーク（連続正解数）
+    5.  共通セクションボックス
+    6.  プレイヤーA / B の2列レイアウト
+    7.  コミュニティカードの横1列行
+    8.  カード本体（共通・大小サイズ・ハイライト）
+    9.  ベストハンドセクション（補足情報）
+   10.  タイマーセクション
+   11.  回答ボタン（A勝ち / チョップ / B勝ち）
+   12.  結果表示ボックス
+   13.  シェアボタン（X / Twitter）
+   14.  「次の問題へ」ボタン（画面下部固定）
+   15.  復習リストセクション
+   ====================================================== */
+
+
+/* ======================================================
+   1. グローバルリセット & 基本設定
+   ====================================================== */
+
+/* 全要素のbox-sizing、margin、paddingをリセットする */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  /* 縦幅を画面いっぱいに使う */
+  height: 100%;
+  font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP',
+               -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* ポーカーテーブルらしい濃い緑の背景 */
+  background: #0a3d18;
+  color: #ffffff;
+  /* iOS タップ時の青いハイライトを消す */
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/* ======================================================
+   2. ホーム（スタート）画面
+   ====================================================== */
+
+/* ページを開いた直後に表示される画面。
+   startQuiz() が呼ばれると display:none で非表示になる */
+#home-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  text-align: center;
+  gap: 14px;
+  /* ポーカーテーブルの照明をイメージした放射状グラデーション */
+  background: radial-gradient(ellipse at center, #1a5c2a 0%, #0a3d18 70%);
+}
+
+/* タイトルのカード装飾アイコン「♠ ♥ ♦ ♣」 */
+.home-deco {
+  font-size: 42px;
+  letter-spacing: 6px;
+  line-height: 1;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* メインタイトル（日本語） */
+.home-title {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.4;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  letter-spacing: 2px;
+}
+
+/* サブタイトル（英語・ゴールド色） */
+.home-en-title {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #ffd700;
+  font-weight: bold;
+  opacity: 0.9;
+}
+
+/* 遊び方ルール説明ボックス */
+.home-rules {
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 13px;
+  line-height: 1.9;
+  max-width: 320px;
+  text-align: left;
+}
+
+/* ルール説明のタイトル行（ゴールド） */
+.home-rule-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffd700;
+  margin-bottom: 6px;
+}
+
+/* スタートボタン（ゴールドグラデーション） */
+.start-btn {
+  background: linear-gradient(135deg, #ffd700 0%, #ff9900 100%);
+  color: #1a0a00;
+  border: none;
+  border-radius: 50px;
+  padding: 15px 60px;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255,185,0,0.5);
+  margin-top: 6px;
+  letter-spacing: 2px;
+  /* タップ時のアニメーション */
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+/* タップしたとき少し沈む */
+.start-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 10px rgba(255,185,0,0.3);
+}
+
+
+/* ======================================================
+   3. クイズ画面全体のコンテナ
+   ====================================================== */
+
+/* startQuiz() が呼ばれると display: flex で表示される */
+#quiz-screen {
+  display: none;            /* 最初は非表示 */
+  flex-direction: column;   /* 子要素を縦方向に並べる */
+  width: 100%;
+  max-width: 480px;         /* PC での最大幅 */
+  margin: 0 auto;
+  /* 画面下部の固定ボタン（次の問題へ）に隠れないよう余白を確保 */
+  padding: 6px 6px 68px 6px;
+  gap: 6px;                 /* 各セクションの間隔 */
+}
+
+
+/* ======================================================
+   4. スコア表示バー / ストリーク（連続正解数）
+   ====================================================== */
+
+.score-bar {
+  text-align: center;
+  padding: 4px 2px;
+}
+
+/* 「HOLD'EM SHOWDOWN QUIZ」タイトル行 */
+.score-title {
+  font-size: 10px;
+  color: #ffd700;
+  letter-spacing: 2px;
+  font-weight: bold;
+}
+
+/* 「正解：X問 ／ Y問中」の行 */
+.score-count {
+  font-size: 13px;
+  font-weight: bold;
+  margin-top: 1px;
+}
+
+/* 正解数の数字（大きくゴールド色で目立たせる） */
+.score-num {
+  font-size: 18px;
+  color: #ffd700;
+  font-weight: 900;
+}
+
+/*
+  連続正解数（ストリーク）の表示行
+  ・ストリーク0のとき：opacity:0 で透明（非表示）
+  ・ストリーク1以上になると opacity:1 にふわっとフェードインする
+  ・JavaScript の updateStreakDisplay() によって opacity が切り替わる
+*/
+.streak-row {
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 2px;
+  /* opacity の変化をなめらかにアニメーションする */
+  transition: opacity 0.3s ease;
+}
+
+/* ストリーク数の数字（炎をイメージしたオレンジ色） */
+.streak-num {
+  font-size: 16px;
+  color: #ff8c00;
+  font-weight: 900;
+}
+
+/* 炎アイコン「🔥」を少し大きく表示する */
+.streak-icon {
+  font-size: 14px;
+}
+
+
+/* ======================================================
+   5. 共通セクションボックス
+      コミュニティカード・タイマーセクションで使用する
+   ====================================================== */
+
+.section-box {
+  background: rgba(0,0,0,0.32);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+/* セクションのラベル（「COMMUNITY CARDS」など） */
+.section-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+}
+
+
+/* ======================================================
+   6. プレイヤーA / B の2列レイアウト
+   ====================================================== */
+
+/* AとBのボックスを横並びにするコンテナ */
+.players-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* 各プレイヤーのボックス（flex:1 で横幅を均等に分割する） */
+.player-box {
+  flex: 1;
+  min-width: 0;             /* flex の縮小バグを防ぐ */
+  background: rgba(0,0,0,0.32);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 8px 8px 6px;
+}
+
+/* 「PLAYER A」「PLAYER B」ラベル */
+.player-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+}
+
+/* ホールカード（手札）2枚を横並びにする行 */
+.hole-row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;  /* 2枚をボックスの中央に配置する */
+  flex-wrap: nowrap;         /* 折り返しを禁止する */
+}
+
+
+/* ======================================================
+   7. コミュニティカードの横1列行
+   ====================================================== */
+
+.community-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;        /* 5枚が必ず1行に収まるよう折り返し禁止 */
+  justify-content: center;  /* 5枚をセクションの中央に配置する */
+}
+
+
+/* ======================================================
+   8. カード本体（共通・大小サイズ・ハイライト）
+   ====================================================== */
+
+/* カード共通スタイル。具体的なサイズは .card-lg / .card-sm で上書きする */
+.card {
+  flex-shrink: 0;           /* コンテナが狭くてもカードサイズを縮小しない */
+  background: #f9f5e8;      /* わずかにクリーム色の紙感 */
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  line-height: 1;
+}
+
+/* ランク文字（'2'〜'A'） */
+.card-rank { font-weight: 900; line-height: 1; }
+
+/* スート記号（♠♥♦♣） */
+.card-suit { line-height: 1; }
+
+/*
+  【大小2サイズ設計】
+  .card-lg ：コミュニティカード・ホールカード用（主役として大きく表示）
+  .card-sm ：ベストハンドの5枚用（補足情報として控えめに小さく表示）
+*/
+
+/* 大サイズカード（コミュニティ・ホールカード） */
+.card-lg {
+  width:  50px;
+  height: 70px;
+  border-radius: 5px;
+}
+/* 大サイズの文字サイズ */
+.card-lg .card-rank { font-size: 18px; }
+.card-lg .card-suit { font-size: 14px; margin-top: 1px; }
+
+/* 小サイズカード（ベストハンドの5枚・補足表示） */
+.card-sm {
+  width:  22px;
+  height: 31px;
+  border-radius: 3px;
+}
+/* 小サイズの文字サイズ */
+.card-sm .card-rank { font-size: 9px; }
+.card-sm .card-suit { font-size: 7px; }
+
+/* ハートとダイヤは赤 */
+.card.red   { color: #cc1111; }
+
+/* スペードとクラブは黒 */
+.card.black { color: #111111; }
+
+/*
+  カードのハイライト（3種類）
+  .highlight ：ベストハンドのボード（コミュニティ）由来カード → ゴールド枠
+  .hole-card ：ベストハンドの手札（ホールカード）由来カード  → シアン枠
+  .dimmed    ：ベストハンドに採用されなかったホールカード    → トーンダウン
+*/
+
+/* ボード由来カード：ゴールドの枠と浮き上がり */
+.card.highlight {
+  outline: 2px solid #ffd700;
+  outline-offset: 0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5),
+              0 0 8px rgba(255,215,0,0.45);
+}
+
+/* 手札由来カード：シアンの枠とグロー。ゴールドとは異なる色で視覚的に区別する */
+.card.hole-card {
+  outline: 2.5px solid #00d4ff;
+  outline-offset: 0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5),
+              0 0 10px rgba(0,212,255,0.5);
+}
+
+/* ベストハンドに採用されなかったホールカード：半透明・グレー・縮小でトーンダウン */
+.card.dimmed {
+  opacity: 0.38;
+  filter: grayscale(60%);
+  transform: scale(0.92);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+
+/* ======================================================
+   9. ベストハンドセクション（回答後に表示される補足情報）
+   ====================================================== */
+
+/* 初期は非表示。回答後に answer() が display:block で展開する */
+.best-section {
+  display: none;
+  margin-top: 7px;
+  padding-top: 7px;
+  /* 上部にホールカード欄との薄い区切り線 */
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 「BEST HAND」ラベルと役名を横並びにする行 */
+.hand-info-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+}
+
+/* 「BEST HAND」の極小ラベル */
+.best-label {
+  font-size: 8px;
+  color: rgba(255,255,255,0.4);
+  font-weight: bold;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+}
+
+/* 役名テキスト（例：「フラッシュ」「ワンペア」） */
+.hand-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #ffd700;
+}
+
+/* ベストハンドの5枚（小サイズ）を1列に並べる行 */
+.best-cards-row {
+  display: flex;
+  gap: 2px;
+  flex-wrap: nowrap;  /* 5枚が必ず1列に収まるよう折り返し禁止 */
+}
+
+/* ベストハンドの凡例（シアン=手札、ゴールド=ボード）*/
+.best-legend {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* 凡例の色付きドット */
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.legend-dot.hole  { background: #00d4ff; }  /* シアン = 手札由来 */
+.legend-dot.board { background: #ffd700; }  /* ゴールド = ボード由来 */
+
+
+/* ======================================================
+   10. タイマーセクション
+   ====================================================== */
+
+/* section-box の padding を上書きして少し狭くする */
+.timer-area {
+  padding: 8px 10px !important;
+}
+
+/* 「勝者はどっち？」テキストとタイマーON/OFFボタンを横並びにする行 */
+.timer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+/* 「勝者はどっち？」のテキスト */
+.question-text {
+  font-size: 15px;
+  font-weight: bold;
+}
+
+/*
+  タイマーON/OFFトグルボタン
+  タップするたびに toggleTimer() が呼ばれ、timerEnabled フラグが反転する
+  ON状態：シアン色 / OFF状態：グレー（.off クラスが付く）
+*/
+.timer-toggle-btn {
+  background: rgba(68,221,204,0.15);
+  border: 1px solid #44ddcc;
+  color: #44ddcc;
+  border-radius: 14px;
+  padding: 3px 11px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+/* タイマーOFFの時：グレーに変化 */
+.timer-toggle-btn.off {
+  background: rgba(120,120,120,0.15);
+  border-color: rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.35);
+}
+.timer-toggle-btn:active { opacity: 0.7; }
+
+/* 「残り 〇〇 秒」のテキスト行 */
+.timer-text {
+  font-size: 11px;
+  margin-bottom: 4px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* 残り時間の数値（等幅フォントで数字がぶれないよう設定） */
+.timer-num {
+  font-size: 22px;
+  font-weight: 900;
+  color: #44ddcc;
+  font-variant-numeric: tabular-nums;
+}
+
+/* タイマーのプログレスバー（背景） */
+.timer-bar {
+  background: rgba(255,255,255,0.12);
+  border-radius: 4px;
+  height: 5px;
+  overflow: hidden;
+}
+
+/* タイマーバーの中身（残り時間に応じて幅が 100%→0% に変化する） */
+.timer-fill {
+  height: 100%;
+  background: #44ddcc;
+  border-radius: 4px;
+  /* 幅の変化と色変化をなめらかにアニメーション */
+  transition: width 0.09s linear, background-color 0.3s ease;
+}
+
+/* 残り3秒以下になったら赤に変える警告スタイル */
+.timer-fill.warn { background: #ff3333; }
+
+/* タイマーOFF時の「制限時間なし」メッセージ（通常は非表示） */
+.timer-off-msg {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  display: none;
+}
+
+
+/* ======================================================
+   11. 回答ボタン（A勝ち / チョップ / B勝ち）
+   ====================================================== */
+
+/* 3つのボタンを横並びにするコンテナ */
+.answer-btns {
+  display: flex;
+  gap: 5px;
+}
+
+/* 各回答ボタンの共通スタイル */
+.answer-btn {
+  flex: 1;          /* 3つが横幅を均等に分け合う */
+  height: 54px;     /* スマホで押しやすいよう十分な高さ */
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  line-height: 1.3;
+}
+/* タップしたとき少し沈む */
+.answer-btn:active  { transform: scale(0.97); }
+
+/* 無効化（回答済み）のときは薄くして操作不可に */
+.answer-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  transform: none;
+}
+
+/* A勝ちボタン：青 */
+.btn-a    { background: linear-gradient(135deg, #3a7bd5, #1a55bb); color: #fff; }
+/* チョップボタン：グレー */
+.btn-chop { background: linear-gradient(135deg, #555, #333); color: #fff; }
+/* B勝ちボタン：赤 */
+.btn-b    { background: linear-gradient(135deg, #dd3333, #aa1111); color: #fff; }
+
+
+/* ======================================================
+   12. 結果表示ボックス（回答後に展開）
+   ====================================================== */
+
+/* 初期は非表示。answer() が呼ばれると display:block で表示される */
+#result-box {
+  display: none;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* 「✅ 正解！」「❌ 不正解！」のヘッドライン */
+.result-headline {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 900;
+  padding: 10px;
+  letter-spacing: 1px;
+}
+/* 正解のとき：緑 */
+.result-headline.correct {
+  background: rgba(60,180,60,0.2);
+  color: #88ff88;
+}
+/* 不正解・時間切れのとき：赤 */
+.result-headline.wrong {
+  background: rgba(200,60,60,0.2);
+  color: #ff8888;
+}
+
+/* 正解ラベル（不正解・時間切れ時のみ表示される） */
+#result-answer {
+  display: none;
+  text-align: center;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffd700;
+  background: rgba(255,215,0,0.07);
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+/* 勝敗の詳細解説テキストエリア（役が同じ場合の決め手を日本語で表示） */
+#result-explain {
+  display: none;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.82);
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+/* 解説内の「💡 解説」ラベル */
+.explain-icon {
+  color: #44ddcc;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+
+/* ======================================================
+   13. シェアボタン（X / Twitter）
+       result-box 内の解説テキストの直下に配置する
+       Xのブランドカラー（ほぼ黒）を基調にしたデザイン
+   ====================================================== */
+
+#share-btn {
+  /* 初期は非表示。answer() が呼ばれると display:flex に切り替わる */
+  display: none;
+
+  /* 横幅いっぱいに広げてスマホで押しやすくする */
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  /* Xのブランドカラー：黒〜ダークグレーのグラデーション */
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.15);
+
+  /* result-box 内の一番下に置くため、上部の仕切り線と下角の丸みを設定する */
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0 0 10px 10px;
+
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+
+  /* タップ時のアニメーション */
+  transition: opacity 0.2s, transform 0.1s;
+}
+/* タップしたとき少し暗くなる */
+#share-btn:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+/* Xロゴ用の「𝕏」文字を少し大きく表示する */
+.share-x-logo {
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+
+/* ======================================================
+   14. 「次の問題へ」ボタン（画面下部に固定）
+   ====================================================== */
+
+/* position: fixed で画面の一番下に常に表示される。
+   スクロールしても追従するため、スクロールなしでタップできる */
+#next-btn {
+  display: none;            /* 回答前は非表示 */
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);  /* 左50% + translateX(-50%) で中央揃え */
+  width: min(100%, 480px);
+  padding: 17px;
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+  color: #1a0a00;
+  border: none;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  z-index: 300;             /* 全要素より前面に表示する */
+  letter-spacing: 1px;
+  box-shadow: 0 -3px 16px rgba(0,0,0,0.4);
+}
+#next-btn:active { opacity: 0.88; }
+
+
+/* ======================================================
+   15. 復習リストセクション
+       間違えた問題の一覧（スタートボタン押下後に表示）
+   ====================================================== */
+
+#review-section {
+  display: none;            /* スタートボタン押下まで非表示 */
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 8px 6px 36px;
+}
+
+/* 「復習リスト」ヘッダー行（タイトルと削除ボタン） */
+.review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 7px 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+}
+
+.review-header-title {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* 「履歴削除」ボタン */
+.delete-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.28);
+  color: rgba(255,255,255,0.55);
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.delete-btn:active { opacity: 0.7; }
+
+/* 復習リストの各アイテム（左に赤い縦線で間違いを示す） */
+.review-item {
+  background: rgba(0,0,0,0.28);
+  border-left: 3px solid rgba(255,80,80,0.5);
+  border-radius: 0 8px 8px 0;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+/* 「✅ 正解：〇〇の勝ち」行（ゴールド色で目立たせる） */
+.review-correct-label {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* 復習リストが空のときの表示 */
+.review-empty {
+  text-align: center;
+  color: rgba(255,255,255,0.35);
+  font-size: 12px;
+  padding: 14px;
+}
