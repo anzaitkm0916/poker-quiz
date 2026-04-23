@@ -777,7 +777,7 @@ function executeShare() {
   const hashtagsForIntent = 'ポーカークイズ,テキサスホールデム';    // X Web Intent 用（# なし・カンマ区切り）
 
   // シェア先 URL
-  const siteUrl = 'https://anzaitkm0916.github.io/poker-quiz/';
+  const siteUrl = 'https://anzai-0916.github.io/poker-quiz/';
 
   /*
     ② パターン分岐：navigator.share が使える環境かどうかを判定する
